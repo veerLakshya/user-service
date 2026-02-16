@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 )
 
@@ -100,7 +101,7 @@ func LoadConfig() Configurations {
 
 func configureDatabase(ctx context.Context, lgr *zap.SugaredLogger, conf DBConfig) *mongo.Database {
 	if conf.URI == "" {
-		lgr.Fatal("Set MongoDB URI in your config.yaml file")
+		lgr.Fatal("Set MongoDB URI in your env")
 	}
 
 	clientOpt := options.Client().ApplyURI(conf.URI)
@@ -109,6 +110,19 @@ func configureDatabase(ctx context.Context, lgr *zap.SugaredLogger, conf DBConfi
 		lgr.Fatal("Error occured connecting to the Database")
 	}
 
+	// pinging to confirm a successful connection
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		panic(err)
+	}
+	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
+
+	// defer func() {
+	// 	if err = client.Disconnect(context.TODO()); err != nil {
+	// 		panic(err)
+	// 	}
+	// }()
+
+	// return db
 	database := client.Database(conf.NAME)
 	return database
 }

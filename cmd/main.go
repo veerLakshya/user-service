@@ -15,6 +15,7 @@ func main() {
 	ctx := context.Background()
 
 	db := config.GetDBConn(ctx, logger, appConfig.DB)
+
 	userDetailsRepo := repository.NewUserDetailsRepository(db)
 	_ = userDetailsRepo
 }
